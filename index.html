@@ -65,8 +65,6 @@
         brightness(1.12)
         contrast(0.98);
       transform: scale(1.04);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
       pointer-events: none;
     }
 
@@ -632,9 +630,13 @@
     ];
 
     const characterVideo = document.querySelector(".character-card video");
+    const backgroundVideo = document.querySelector(".bg-video");
 
     let messageIndex = 0;
     let bubbleTimer = null;
+    let activeBubbles = 0;
+    let allMessagesShown = false;
+    let finalLoveShown = false;
     const order = shuffle(messages.length);
 
     function randomBetween(min, max) {
@@ -650,7 +652,20 @@
       return arr;
     }
 
+    function showFinalLoveWhenReady() {
+      if (!allMessagesShown || activeBubbles > 0 || finalLoveShown) return;
+
+      finalLoveShown = true;
+      window.setTimeout(() => {
+        const finalLove = document.getElementById("finalLove");
+        if (finalLove) {
+          finalLove.classList.add("show");
+        }
+      }, 500);
+    }
+
     function spawnBubble(message) {
+      activeBubbles += 1;
       const bubble = document.createElement("div");
       bubble.className = "bubble";
       bubble.innerHTML = `<span>${message}</span>`;
@@ -731,6 +746,8 @@
 
       bubble.addEventListener("animationend", () => {
         bubble.remove();
+        activeBubbles = Math.max(0, activeBubbles - 1);
+        showFinalLoveWhenReady();
       }, { once: true });
     }
 
@@ -741,13 +758,8 @@
           bubbleTimer = null;
         }
 
-        window.setTimeout(() => {
-          const finalLove = document.getElementById("finalLove");
-          if (finalLove) {
-            finalLove.classList.add("show");
-          }
-        }, 900);
-
+        allMessagesShown = true;
+        showFinalLoveWhenReady();
         return;
       }
 
@@ -765,6 +777,11 @@
       if (characterVideo) {
         characterVideo.muted = true;
         characterVideo.play().catch(() => {});
+      }
+
+      if (backgroundVideo) {
+        backgroundVideo.muted = true;
+        backgroundVideo.play().catch(() => {});
       }
 
       window.setTimeout(startMessages, 450);
